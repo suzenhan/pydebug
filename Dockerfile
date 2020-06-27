@@ -13,6 +13,7 @@ ENV PATH /usr/local/bin:$PATH
 
 # http://bugs.python.org/issue19846
 # > At the moment, setting "LANG=C" on a Linux system *fundamentally breaks Python 3*, and that's not OK.
+# https://github.com/pyca/cryptography/issues/4856
 ENV LANG C.UTF-8
 
 # runtime dependencies
@@ -30,7 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	&& rm -rf /var/lib/apt/lists/*
 
 ENV GPG_KEY 0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
-ENV PYTHON_VERSION 3.6.3
+ENV PYTHON_VERSION 3.6.5
 
 RUN set -ex \
 	&& buildDeps=" \
@@ -76,7 +77,6 @@ RUN set -ex \
 		--with-system-expat \
 		--with-system-ffi \
 		--without-ensurepip \
-		--with-pydebug \
 		CFLAGS="-g -O0" \
 	&& make -j "$(nproc)" \
 	&& make install \
@@ -85,7 +85,6 @@ RUN set -ex \
 	&& cp /usr/src/python/python-gdb.py /gdb/libpython.py \
 	&& ldconfig \
 	\
-	&& apt-get purge -y --auto-remove $buildDeps \
 	\
 	&& find /usr/local -depth \
 		\( \
@@ -131,5 +130,8 @@ RUN set -ex; \
 			\( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
 		\) -exec rm -rf '{}' +; \
 	rm -f get-pip.py
+
+
+RUN apt-get update && apt-get install -y --no-install-recommends vim libmysqlclient-dev
 
 CMD ["python3"]
